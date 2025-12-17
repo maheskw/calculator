@@ -26,7 +26,6 @@ pipeline {
                 withCredentials([usernamePassword(
                     credentialsId: DOCKER_CREDENTIALS_ID,
                     usernameVariable: 'docker login -u mahesperumal',
-',
                     passwordVariable: 'dckr_pat_AAHpu92P1nsNmyT-cR27U7WwFe0'
                 )]) {
                     sh '''
