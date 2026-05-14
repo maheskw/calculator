@@ -1,0 +1,15 @@
+{
+  "name": "Al-Waraq Portal",
+  "short_name": "AlWaraq",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0A0F1E",
+  "theme_color": "#0A0F1E",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2961/2961148.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
