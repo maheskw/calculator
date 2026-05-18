@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customer Portal - Al-Waraq</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0A0F1E">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* உங்கள் பழைய டிசைன் அப்படியே இங்கே இருக்கும் */
+  :root { --ink: #0A0F1E; --gold: #C8920A; --paper: #F9F5EE; --white: #FFFFFF; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--ink); color: var(--white); display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+  .card { background: var(--white); color: var(--ink); padding: 2rem; border-radius: 12px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+  input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; }
+  button { width: 100%; padding: 12px; background: var(--gold); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+
+<div id="login-screen" class="card">
+  <h2 style="font-family: 'Syne';">Customer Portal</h2>
+  <p style="color: #666; margin-bottom: 20px;">Enter your ID and Password</p>
+  <input type="text" id="inp-id" placeholder="Client ID (e.g. ALMAHA)">
+  <input type="password" id="inp-pw" placeholder="Password">
+  <button onclick="doLogin()">Login Securely</button>
+</div>
+
+<div id="success-screen" class="card hidden">
+  <h2 id="welcome-msg" style="font-family: 'Syne'; color: var(--gold);"></h2>
+  <p id="ctxt" style="margin: 20px 0; color: #444;">Redirecting to your dashboard...</p>
+  <a id="report-link" target="_blank" style="color: var(--gold); font-weight: bold; text-decoration: none;">Click here if not redirected</a>
+  <br><br>
+  <button onclick="location.reload()" style="background: #eee; color: #333;">Logout</button>
+</div>
+
+<script>
+// 1. Password Hashing Function
+async function hashPassword(password) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// 2. User Database with Hashed Passwords
+const USERS = {
+  'ALMAHA': { 
+    name: 'Al-Maha Salon', 
+    pwHash: '85ef713998f804566c5d6c8114f0525d8866a2b845c48b26edb3b9b476e3390c', // Password: almaha123
+    reportUrl: 'YOUR_POWER_BI_URL_HERE' 
+  },
+  'ADMIN': { 
+    name: 'Main Admin', 
+    pwHash: '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', // Password: password
+    reportUrl: 'YOUR_POWER_BI_URL_HERE' 
+  }
+};
+
+async function doLogin() {
+  const id = document.getElementById('inp-id').value.toUpperCase().trim();
+  const pw = document.getElementById('inp-pw').value;
+  const user = USERS[id];
+
+  if (!user) { alert('Invalid Client ID'); return; }
+
+  const inputHash = await hashPassword(pw);
+
+  if (user.pwHash === inputHash) {
+    document.getElementById('login-screen').classList.add('hidden');
+    const success = document.getElementById('success-screen');
+    success.classList.remove('hidden');
+    document.getElementById('welcome-msg').innerText = 'Welcome, ' + user.name;
+    document.getElementById('report-link').href = user.reportUrl;
+    
+    setTimeout(() => {
+        if(user.reportUrl !== 'YOUR_POWER_BI_URL_HERE') window.open(user.reportUrl, '_blank');
+    }, 3000);
+  } else {
+    alert('Incorrect Password');
+  }
+}
+
+// Register Service Worker for PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(err => console.log('SW failed', err));
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Al Maha Accounts Portal</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        h2 { color: #2c3e50; margin-bottom: 20px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
+        button { width: 100%; padding: 12px; background: #27ae60; color: white; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; font-weight: bold; }
+        button:hover { background: #219653; }
+        .error { color: #e74c3c; margin-top: 10px; font-weight: bold; display: none; }
+        .dashboard { display: none; width: 100%; max-width: 600px; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #2c3e50; color: white; }
+    </style>
+</head>
+<body>
+
+<div class="container" id="login-box">
+    <h2>Al Maha Accounts</h2>
+    <input type="text" id="username" placeholder="உங்களது பயனர் ஐடி (User ID)">
+    <input type="password" id="password" placeholder="கடவுச்சொல் (Password)">
+    <button onclick="handleLogin()">உள்நுழை (Login)</button>
+    <div id="error-msg" class="error"></div>
+</div>
+
+<div class="dashboard" id="dashboard-box">
+    <h2>வணக்கம், <span id="cust-name"></span>!</h2>
+    <p>உங்களது தற்போதைய கணக்கு விபரங்கள் கீழே கொடுக்கப்பட்டுள்ளன:</p>
+    <table>
+        <thead>
+            <tr>
+                <th>விவரம்</th>
+                <th>தொகை (KD)</th>
+                <th>கடைசி தேதி</th>
+            </tr>
+        </thead>
+        <tbody id="data-rows">
+            </tbody>
+    </table>
+    <br>
+    <button onclick="location.reload()" style="background:#7f8c8d;">Logout</button>
+</div>
+
+<script>
+async function handleLogin() {
+    const user = document.getElementById('username').value;
+    const pass = document.getElementById('password').value;
+    const errorDiv = document.getElementById('error-msg');
+
+    // Vercel பின்தளத்திற்கு (API) தரவை அனுப்புகிறோம்
+    const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: user, password: pass })
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+        document.getElementById('login-box').style.display = 'none';
+        const dbBox = document.getElementById('dashboard-box');
+        dbBox.style.display = 'block';
+        document.body.style.alignItems = 'flex-start';
+        document.body.style.paddingTop = '50px';
+
+        // திரையில் தரவை டேபிளாகக் காட்டுதல்
+        const tbody = document.getElementById('data-rows');
+        tbody.innerHTML = "";
+        
+        result.accounts.forEach(row => {
+            document.getElementById('cust-name').innerText = row[1]; // கனிவான பெயர்
+            const tr = `<tr>
+                <td>கணக்கு இருப்பு / பில் விபரம்</td>
+                <td><b>${row[2]}</b></td>
+                <td>${row[3]}</td>
+            </tr>`;
+            tbody.innerHTML += tr;
+        });
+    } else {
+        errorDiv.innerText = result.message || "தவறான விவரங்கள்!";
+        errorDiv.style.display = 'block';
+    }
+}
+</script>
+
+</body>
+</html>
